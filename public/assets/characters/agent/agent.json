@@ -1,0 +1,124 @@
+{
+  "skeleton": {
+    "hash": "tt-agent",
+    "spine": "4.2.36",
+    "x": -32,
+    "y": -8,
+    "width": 64,
+    "height": 72,
+    "images": "./"
+  },
+  "bones": [
+    { "name": "root" },
+    { "name": "hip", "parent": "root", "y": 18 },
+    { "name": "body", "parent": "hip", "length": 32, "rotation": 90 },
+    { "name": "head", "parent": "body", "length": 18, "x": 32, "rotation": -20 }
+  ],
+  "slots": [
+    { "name": "body", "bone": "body", "attachment": "body" },
+    { "name": "head", "bone": "head", "attachment": "head" }
+  ],
+  "skins": [
+    {
+      "name": "default",
+      "attachments": {
+        "body": {
+          "body": {
+            "x": 16,
+            "y": -2,
+            "rotation": -90,
+            "width": 64,
+            "height": 56
+          }
+        },
+        "head": {
+          "head": {
+            "x": 9,
+            "y": 1,
+            "rotation": -70,
+            "width": 32,
+            "height": 40
+          }
+        }
+      }
+    }
+  ],
+  "animations": {
+    "idle": {
+      "bones": {
+        "body": {
+          "scale": [
+            {},
+            { "time": 0.6, "x": 1.03, "y": 0.97 },
+            { "time": 1.2 }
+          ]
+        }
+      }
+    },
+    "walk": {
+      "bones": {
+        "hip": {
+          "translate": [
+            {},
+            { "time": 0.15, "y": 5 },
+            { "time": 0.3 },
+            { "time": 0.45, "y": 5 },
+            { "time": 0.6 }
+          ]
+        },
+        "body": {
+          "rotate": [
+            {},
+            { "time": 0.15, "value": 4 },
+            { "time": 0.3, "value": -4 },
+            { "time": 0.45, "value": 4 },
+            { "time": 0.6 }
+          ]
+        }
+      }
+    },
+    "work": {
+      "bones": {
+        "body": {
+          "rotate": [
+            {},
+            { "time": 0.25, "value": 10 },
+            { "time": 0.5, "value": -6 },
+            { "time": 0.75 }
+          ]
+        },
+        "head": {
+          "rotate": [
+            {},
+            { "time": 0.4, "value": -8 },
+            { "time": 0.8 }
+          ]
+        }
+      }
+    },
+    "think": {
+      "bones": {
+        "head": {
+          "rotate": [
+            {},
+            { "time": 0.5, "value": -12 },
+            { "time": 1 }
+          ]
+        }
+      }
+    },
+    "talk": {
+      "bones": {
+        "head": {
+          "scale": [
+            {},
+            { "time": 0.12, "x": 1.06, "y": 1.06 },
+            { "time": 0.24 },
+            { "time": 0.36, "x": 1.06, "y": 1.06 },
+            { "time": 0.48 }
+          ]
+        }
+      }
+    }
+  }
+}

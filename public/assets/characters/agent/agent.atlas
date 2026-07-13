@@ -1,0 +1,19 @@
+agent.png
+size:128,64
+format:RGBA8888
+filter:Linear,Linear
+repeat:none
+body
+  rotate:false
+  xy:0,0
+  size:64,56
+  orig:64,56
+  offset:0,0
+  index:-1
+head
+  rotate:false
+  xy:64,0
+  size:32,40
+  orig:32,40
+  offset:0,0
+  index:-1

@@ -1,0 +1,47 @@
+office.png
+size:192,128
+format:RGBA8888
+filter:Linear,Linear
+repeat:none
+legs
+  rotate:false
+  xy:4,56
+  size:48,42
+  orig:48,42
+  offset:0,0
+  index:-1
+body
+  rotate:false
+  xy:6,8
+  size:44,46
+  orig:44,46
+  offset:0,0
+  index:-1
+head
+  rotate:false
+  xy:62,6
+  size:40,40
+  orig:40,40
+  offset:0,0
+  index:-1
+badge
+  rotate:false
+  xy:64,50
+  size:20,20
+  orig:20,20
+  offset:0,0
+  index:-1
+arm_l
+  rotate:false
+  xy:0,20
+  size:8,28
+  orig:8,28
+  offset:0,0
+  index:-1
+arm_r
+  rotate:false
+  xy:48,20
+  size:8,28
+  orig:8,28
+  offset:0,0
+  index:-1
