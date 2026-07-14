@@ -87,3 +87,9 @@ curl -X POST http://localhost:8765/actions \
   "task": "整理市场情报…"
 }
 ```
+
+## 联系我
+
+如需交流或合作，可以扫码
+
+![微信二维码](./docs/wechat-qr.png)
