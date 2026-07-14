@@ -92,4 +92,4 @@ curl -X POST http://localhost:8765/actions \
 
 如需交流或合作，可以扫码
 
-![微信二维码](./docs/wechat-qr.png)
+<img src="./docs/wechat-qr.png" alt="微信二维码" width="220" />

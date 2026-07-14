@@ -2,6 +2,7 @@ import { Application, Container, Graphics, Sprite } from 'pixi.js'
 import type { FederatedPointerEvent } from 'pixi.js'
 import type { Agent, AgentState } from '@/types/agent'
 import {
+  AGENT_ROSTER,
   COLORS,
   DESKS,
   INITIAL_AGENTS,
@@ -30,6 +31,28 @@ export type OfficeAgentClick = {
   clientY: number
 }
 
+type AutoWorkflowStep = {
+  visitor: number
+  host: number
+  message: string
+}
+
+const AUTO_WORKFLOW_MAX_ACTIVE = 2
+const AUTO_WORKFLOW_INTERVAL = 1.2
+
+const AUTO_WORKFLOW_STEPS: AutoWorkflowStep[] = [
+  { visitor: 1, host: 2, message: '新的任务来了，先帮我扫一下信息源。' },
+  { visitor: 2, host: 3, message: '资料已经找到，麻烦整理一下。' },
+  { visitor: 3, host: 4, message: '这份可以进入撰写了。' },
+  { visitor: 4, host: 6, message: '初稿好了，请帮忙审一下。' },
+  { visitor: 6, host: 4, message: '这里需要改一版，我标了重点。' },
+  { visitor: 5, host: 1, message: '市场简报已经打包，请看一下。' },
+  { visitor: 1, host: 5, message: '同步一下调研方向，准备发给团队。' },
+  { visitor: 3, host: 6, message: '归档完成，合规队列可以接手。' },
+  { visitor: 2, host: 5, message: '这些来源适合市场情报线。' },
+  { visitor: 4, host: 1, message: '修改稿已完成，等你签批。' },
+]
+
 export class OfficeScene {
   private app: Application | null = null
   private world: Container | null = null
@@ -42,6 +65,8 @@ export class OfficeScene {
   private simulator = new OfficeSimulator()
 
   private agents: Agent[] = INITIAL_AGENTS.map((a) => ({ ...a }))
+  private autoWorkflowTimer = 0.8
+  private autoWorkflowIndex = 0
   private readonly options: {
     onAgentClick?: (event: OfficeAgentClick) => void
   }
@@ -221,6 +246,7 @@ export class OfficeScene {
       this.agentEntities,
     )
     this.pushDataToEntities()
+    this.updateAutoWorkflow(dt)
 
     this.animation.update(this.agentEntities, dt)
     this.sortOfficeDepth()
@@ -228,6 +254,65 @@ export class OfficeScene {
 
     setOfficeAgents(this.agents)
     notifyVisitMissionActivity(this.agents)
+  }
+
+  private updateAutoWorkflow(dt: number) {
+    this.autoWorkflowTimer -= dt
+    if (this.autoWorkflowTimer > 0) return
+
+    const activeCount = this.agents.filter((agent) => agent.mission).length
+    if (activeCount >= AUTO_WORKFLOW_MAX_ACTIVE) {
+      this.autoWorkflowTimer = 0.35
+      return
+    }
+
+    const step = this.nextAvailableWorkflowStep()
+    if (!step) {
+      this.autoWorkflowTimer = 0.45
+      return
+    }
+
+    const visitorName = AGENT_ROSTER[step.visitor - 1]?.name ?? `#${step.visitor}`
+    const message = `${visitorName}：${step.message}`
+    this.agents = this.simulator.startDeskVisit(
+      this.agents,
+      step.visitor,
+      step.host,
+      message,
+    )
+    this.pushDataToEntities()
+    this.autoWorkflowTimer = AUTO_WORKFLOW_INTERVAL
+  }
+
+  private nextAvailableWorkflowStep(): AutoWorkflowStep | null {
+    for (let i = 0; i < AUTO_WORKFLOW_STEPS.length; i++) {
+      const index = (this.autoWorkflowIndex + i) % AUTO_WORKFLOW_STEPS.length
+      const step = AUTO_WORKFLOW_STEPS[index]!
+      if (this.canStartWorkflowStep(step)) {
+        this.autoWorkflowIndex = (index + 1) % AUTO_WORKFLOW_STEPS.length
+        return step
+      }
+    }
+    return null
+  }
+
+  private canStartWorkflowStep(step: AutoWorkflowStep): boolean {
+    const visitor = this.agents[step.visitor - 1]
+    const host = this.agents[step.host - 1]
+    if (!visitor || !host || visitor.id === host.id) return false
+
+    const busyIds = new Set<string>()
+    for (const agent of this.agents) {
+      if (agent.mission) {
+        busyIds.add(agent.id)
+        busyIds.add(agent.mission.hostAgentId)
+      }
+      if (agent.state === 'walking' || agent.customAnimation) {
+        busyIds.add(agent.id)
+      }
+    }
+
+    return !busyIds.has(visitor.id) && !busyIds.has(host.id)
   }
 
   private sortOfficeDepth() {
