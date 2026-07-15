@@ -195,6 +195,11 @@ export function notifyVisitMissionActivity(agents: Agent[]) {
   wasMissionBusy = busy
 }
 
+/** 是否有尚未执行的外部拜访命令（供场景自动工作流让路） */
+export function hasPendingVisitQueue(): boolean {
+  return visitQueue.length > 0
+}
+
 export function getDispatchStats(): {
   mode: OfficeDispatchMode
   queueDepth: number

@@ -16,7 +16,10 @@ import { MovementSystem } from '@/scene/systems/MovementSystem'
 import { AnimationSystem } from '@/scene/systems/AnimationSystem'
 import { OfficeSimulator } from '@/scene/simulation/OfficeSimulator'
 import { bindOfficeScene } from '@/scene/officeSceneBridge'
-import { notifyVisitMissionActivity } from '@/services/officeActionDispatcher'
+import {
+  hasPendingVisitQueue,
+  notifyVisitMissionActivity,
+} from '@/services/officeActionDispatcher'
 import { setOfficeAgents } from '@/store/officeStore'
 import {
   getOfficeBackgroundTexture,
@@ -246,6 +249,10 @@ export class OfficeScene {
       this.agentEntities,
     )
     this.pushDataToEntities()
+
+    // 先同步 store 并消费外部队列，再补 Demo，避免空闲窗口被自动工作流吞掉
+    setOfficeAgents(this.agents)
+    notifyVisitMissionActivity(this.agents)
     this.updateAutoWorkflow(dt)
 
     this.animation.update(this.agentEntities, dt)
@@ -253,12 +260,17 @@ export class OfficeScene {
     this.syncDeskOccupancy()
 
     setOfficeAgents(this.agents)
-    notifyVisitMissionActivity(this.agents)
   }
 
   private updateAutoWorkflow(dt: number) {
     this.autoWorkflowTimer -= dt
     if (this.autoWorkflowTimer > 0) return
+
+    // 外部 HTTP 拜访优先：有待执行命令时不启动新的 Demo 拜访
+    if (hasPendingVisitQueue()) {
+      this.autoWorkflowTimer = 0.35
+      return
+    }
 
     const activeCount = this.agents.filter((agent) => agent.mission).length
     if (activeCount >= AUTO_WORKFLOW_MAX_ACTIVE) {
