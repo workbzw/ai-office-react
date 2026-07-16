@@ -1,5 +1,7 @@
 # AI Office React
 
+![AI Office React 页面预览](./docs/page-preview.jpeg)
+
 独立版 AI 办公室前端项目， Vite + React 应用直接运行
 
 点击小人会有菜单弹出，其他按钮没有功能，不要惊讶，样式只是给你们参考的
