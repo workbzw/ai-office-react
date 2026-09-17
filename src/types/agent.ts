@@ -26,6 +26,10 @@ export interface DeskVisitMission {
   talkRemaining?: number
   /** 当前站之后还要去的目标 */
   queue: DeskVisitStop[]
+  /** return 阶段走回座位后要落入的状态(菜单改状态用) */
+  landingState?: AgentState
+  /** return 阶段走回座位后要播放的表情动画(菜单表情用) */
+  landingAnimation?: string
 }
 
 export interface Agent {

@@ -31,7 +31,14 @@ export class OfficeSimulator {
     }
 
     return agents.map((agent) => {
-      if (agentHasActiveMission(agent)) return agent
+      // 有任务或正在走路的小人不钉座位（走路插值由 MovementSystem 驱动）
+      if (
+        agentHasActiveMission(agent) ||
+        agent.state === 'walking' ||
+        agent.walkPath != null
+      ) {
+        return agent
+      }
 
       const desk = this.deskFor(agent)
       const roster = AGENT_ROSTER.find((r) => r.id === agent.id)
