@@ -9,7 +9,7 @@ import {
 const ARRIVE_THRESHOLD = 6
 const WALK_SPEED = 90
 
-function isHomeDeskSeat(deskId: string | undefined, x: number, y: number): boolean {
+export function isHomeDeskSeat(deskId: string | undefined, x: number, y: number): boolean {
   if (!deskId) return false
   const desk = DESKS.find((d) => d.id === deskId)
   if (!desk) return false

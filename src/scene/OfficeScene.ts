@@ -12,9 +12,13 @@ import {
 } from '@/scene/layout/officeLayout'
 import { AgentEntity } from '@/scene/entities/AgentEntity'
 import { DeskEntity } from '@/scene/entities/DeskEntity'
-import { MovementSystem } from '@/scene/systems/MovementSystem'
+import {
+  MovementSystem,
+  isHomeDeskSeat,
+} from '@/scene/systems/MovementSystem'
 import { AnimationSystem } from '@/scene/systems/AnimationSystem'
 import { OfficeSimulator } from '@/scene/simulation/OfficeSimulator'
+import { startReturnToDesk } from '@/scene/simulation/deskVisit'
 import { bindOfficeScene } from '@/scene/officeSceneBridge'
 import {
   hasPendingVisitQueue,
@@ -147,6 +151,21 @@ export class OfficeScene {
   }
 
   setAgentState(id: string, state: AgentState, task?: string) {
+    const current = this.agents.find((a) => a.id === id)
+    if (!current) return
+
+    // 离座小人：先走回座位，到位后再落入目标状态（避免被钉座位瞬移）
+    if (!isHomeDeskSeat(current.assignedDeskId, current.x, current.y)) {
+      this.agents = startReturnToDesk(this.agents, id, {
+        landingState: state,
+        task,
+      })
+      this.agentEntities.get(id)?.hideBubble()
+      setOfficeAgents(this.agents)
+      this.pushDataToEntities()
+      return
+    }
+
     this.agents = this.agents.map((agent) => {
       if (agent.id !== id) return agent
       return {
@@ -171,6 +190,21 @@ export class OfficeScene {
   }
 
   playAgentAnimation(id: string, animation: string, task?: string) {
+    const current = this.agents.find((a) => a.id === id)
+    if (!current) return
+
+    // 离座小人：先走回座位，到位后再播放表情（避免被钉座位瞬移）
+    if (!isHomeDeskSeat(current.assignedDeskId, current.x, current.y)) {
+      this.agents = startReturnToDesk(this.agents, id, {
+        landingAnimation: animation,
+        task,
+      })
+      this.agentEntities.get(id)?.hideBubble()
+      setOfficeAgents(this.agents)
+      this.pushDataToEntities()
+      return
+    }
+
     this.agents = this.agents.map((agent) => {
       if (agent.id !== id) return agent
       return {

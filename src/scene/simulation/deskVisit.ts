@@ -1,4 +1,10 @@
-import type { Agent, Desk, DeskVisitMission, DeskVisitStop } from '@/types/agent'
+import type {
+  Agent,
+  AgentState,
+  Desk,
+  DeskVisitMission,
+  DeskVisitStop,
+} from '@/types/agent'
 import {
   AGENT_ROSTER,
   DESKS,
@@ -10,7 +16,10 @@ import {
   planWalkToDeskSeat,
   planWalkToDeskVisit,
 } from '@/scene/navigation/officeNavigation'
-import { MovementSystem } from '@/scene/systems/MovementSystem'
+import {
+  MovementSystem,
+  isHomeDeskSeat,
+} from '@/scene/systems/MovementSystem'
 import type { AgentEntity } from '@/scene/entities/AgentEntity'
 import { talkFacingToward } from '@/scene/systems/movementFacing'
 
@@ -146,6 +155,53 @@ export function startDeskVisitTour(
     if (a.id !== visitor.id) return a
     const going = assignGotoHost(a, firstStop, agents)
     return { ...going, mission }
+  })
+}
+
+/** 离座小人走回自己工位，到位后落入 landingState 或播放 landingAnimation（菜单改状态/表情用） */
+export function startReturnToDesk(
+  agents: Agent[],
+  agentId: string,
+  opts: {
+    landingState?: AgentState
+    landingAnimation?: string
+    task?: string
+  } = {},
+): Agent[] {
+  const agent = agents.find((a) => a.id === agentId)
+  if (!agent) return agents
+  if (isHomeDeskSeat(agent.assignedDeskId, agent.x, agent.y)) return agents
+
+  const home = deskForAgent(agent)
+  const ctx = createNavContext(agents, agent.id)
+  const path = planWalkToDeskSeat(agent.x, agent.y, home, ctx)
+  if (path.length === 0) return agents
+
+  const roster = AGENT_ROSTER.find((r) => r.id === agent.id)
+  const mission: DeskVisitMission = {
+    kind: 'desk_visit',
+    phase: 'return',
+    hostAgentId: agent.id,
+    hostDeskId: home.id,
+    message: '',
+    resumeTask: opts.task ?? roster?.task ?? agent.currentTask ?? '工作中…',
+    talkDuration: 0,
+    queue: [],
+    landingState: opts.landingState,
+    landingAnimation: opts.landingAnimation,
+  }
+
+  return agents.map((a) => {
+    if (a.id !== agentId) return a
+    const walking = MovementSystem.assignWalkPath(
+      { ...a, bubbleText: undefined },
+      path,
+    )
+    return {
+      ...walking,
+      currentTask: HANDOFF_STATUS.wrappingUp,
+      mission,
+    }
   })
 }
 
@@ -339,11 +395,26 @@ export function processDeskVisitMissions(
 
       const rest = { ...agent }
       delete rest.mission
+
+      if (mission.landingAnimation) {
+        return {
+          ...rest,
+          state: 'talking' as const,
+          customAnimation: mission.landingAnimation,
+          viewFacing: 'front' as const,
+          facing: 1 as const,
+          currentTask: mission.resumeTask,
+          bubbleText: undefined,
+        }
+      }
+
+      const landingState = mission.landingState ?? 'working'
       return {
         ...rest,
-        state: 'working' as const,
+        state: landingState,
         viewFacing: 'back' as const,
-        currentTask: mission.resumeTask,
+        currentTask:
+          landingState === 'idle' ? undefined : mission.resumeTask,
         bubbleText: undefined,
       }
     }
