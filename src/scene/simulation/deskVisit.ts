@@ -173,9 +173,17 @@ export function startReturnToDesk(
   if (isHomeDeskSeat(agent.assignedDeskId, agent.x, agent.y)) return agents
 
   const home = deskForAgent(agent)
-  const ctx = createNavContext(agents, agent.id)
-  const path = planWalkToDeskSeat(agent.x, agent.y, home, ctx)
-  if (path.length === 0) return agents
+  const alreadyReturning =
+    agent.mission?.kind === 'desk_visit' &&
+    agent.mission.phase === 'return' &&
+    agent.state === 'walking' &&
+    agent.targetX != null &&
+    agent.targetY != null
+  // 返回途中只更新到达后的动作，避免重新寻路让小人折返。
+  const path = alreadyReturning
+    ? null
+    : planWalkToDeskSeat(agent.x, agent.y, home, createNavContext(agents, agent.id))
+  if (path?.length === 0) return agents
 
   const roster = AGENT_ROSTER.find((r) => r.id === agent.id)
   const mission: DeskVisitMission = {
@@ -193,10 +201,8 @@ export function startReturnToDesk(
 
   return agents.map((a) => {
     if (a.id !== agentId) return a
-    const walking = MovementSystem.assignWalkPath(
-      { ...a, bubbleText: undefined },
-      path,
-    )
+    const cleared = { ...a, bubbleText: undefined, customAnimation: undefined }
+    const walking = path ? MovementSystem.assignWalkPath(cleared, path) : cleared
     return {
       ...walking,
       currentTask: HANDOFF_STATUS.wrappingUp,

@@ -9,6 +9,7 @@
     "action-gateway": "node scripts/action-gateway.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+    "test": "node --test tests/*.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
