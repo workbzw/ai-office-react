@@ -1,3 +1,3 @@
-纯净版在 [PixOffice](https://github.com/workbzw/pixoffice)。
+本项目采用 Spine 方案，自用与商业化均需遵守 [Spine 授权要求](https://esotericsoftware.com/spine-runtimes-license)。
 
-“纯净版”指已移除旧 Spine 运行时及相关素材，自有视觉素材由维护者自行付费生成，项目代码按 MIT 许可开源，支持商业使用；仍须保留版权与许可声明，并遵守第三方开源许可。
+纯净开源版在 [PixOffice](https://github.com/workbzw/pixoffice)，已移除 Spine，支持按 MIT 及第三方开源许可商业化。
