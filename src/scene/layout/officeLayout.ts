@@ -13,9 +13,9 @@ export const COLORS = {
   agentBody: 0x1a1a1a,
 } as const
 
-/** 2×3 工位区 */
+/** 2×2 工位区 */
 const DESK_COLS = 2
-const DESK_ROWS = 3
+const DESK_ROWS = 2
 const DESK_COL_GAP = 150
 const DESK_ROW_GAP = 140
 const DESK_BLOCK_WIDTH = (DESK_COLS - 1) * DESK_COL_GAP
@@ -54,49 +54,35 @@ export type AgentRosterEntry = {
   task: string
 }
 
-/** 6 位市场部员工（名册序号 1–6） */
+/** 4 位内容创作员工（名册序号 1–4） */
 export const AGENT_ROSTER: AgentRosterEntry[] = [
   {
-    id: 'marvis',
-    name: '王明',
+    id: 'content-director',
+    name: '编导',
     color: 0xe85d4a,
-    task: '主管：等待交付物',
+    task: '短视频脚本、口播、分镜',
   },
   {
-    id: 'code-agent',
-    name: '李研',
+    id: 'media-buyer',
+    name: '投手',
     color: 0x4a90d9,
-    task: '检索：扫描信息源',
+    task: '投放策略、预算、测试',
   },
   {
-    id: 'file-agent',
-    name: '周理',
+    id: 'account-starter',
+    name: '运营',
     color: 0x9b6dd7,
-    task: '整理：归类情报',
+    task: '账号规划、发布节奏',
   },
   {
-    id: 'app-agent',
-    name: '陈书',
-    color: 0xf5c542,
-    task: '撰写：起草标书',
-  },
-  {
-    id: 'review-agent',
-    name: '刘市',
-    color: 0xf97316,
-    task: '市场：打包情报简报',
-  },
-  {
-    id: 'data-agent',
-    name: '赵审',
+    id: 'case-researcher',
+    name: '同行拆解',
     color: 0x4ecdc4,
-    task: '审核：合规待审队列',
+    task: '案例分析、可参考做法',
   },
 ]
 
 const BOOT_STATES: AgentState[] = [
-  'working',
-  'working',
   'working',
   'working',
   'working',

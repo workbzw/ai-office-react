@@ -7,10 +7,10 @@ export type ChibiAgentPreset = {
   stateAnims: Partial<Record<AgentState, string>>
 }
 
-/** 6 位 Agent 朝向与标志性动作 */
+/** 4 位内容创作 Agent 朝向与标志性动作 */
 export const CHIBI_AGENT_PRESETS: Record<string, ChibiAgentPreset> = {
-  /** 正面 · determined */
-  marvis: {
+  /** 编导 · 正面 · 坚定 */
+  'content-director': {
     facing: 'front',
     stateAnims: {
       idle: 'emotes/determined',
@@ -20,30 +20,8 @@ export const CHIBI_AGENT_PRESETS: Record<string, ChibiAgentPreset> = {
       talking: 'emotes/wave',
     },
   },
-  /** 背面 · working */
-  'file-agent': {
-    facing: 'back',
-    stateAnims: {
-      working: 'movement/idle-back',
-      idle: 'movement/idle-back',
-      walking: 'movement/trot-back',
-      thinking: 'movement/idle-back',
-      talking: 'movement/idle-back',
-    },
-  },
-  /** 左面 · walking */
-  'app-agent': {
-    facing: 'left',
-    stateAnims: {
-      walking: 'movement/trot-left',
-      idle: 'movement/idle-left',
-      working: 'movement/idle-left',
-      thinking: 'movement/idle-left',
-      talking: 'movement/idle-left',
-    },
-  },
-  /** 右面 · thinking */
-  'data-agent': {
+  /** 投手 · 右面 · 思考 */
+  'media-buyer': {
     facing: 'right',
     stateAnims: {
       thinking: 'emotes/thinking',
@@ -53,21 +31,26 @@ export const CHIBI_AGENT_PRESETS: Record<string, ChibiAgentPreset> = {
       talking: 'emotes/wave',
     },
   },
-  'code-agent': {
-    facing: 'front',
+  /** 运营 · 左面 · 行动 */
+  'account-starter': {
+    facing: 'left',
     stateAnims: {
-      working: 'emotes/idea',
-      idle: 'emotes/idea',
-      thinking: 'emotes/thinking',
-      talking: 'emotes/excited',
+      walking: 'movement/trot-left',
+      idle: 'movement/idle-left',
+      working: 'movement/idle-left',
+      thinking: 'movement/idle-left',
+      talking: 'movement/idle-left',
     },
   },
-  'review-agent': {
-    facing: 'front',
+  /** 同行拆解 · 背面 · 专注 */
+  'case-researcher': {
+    facing: 'back',
     stateAnims: {
-      talking: 'emotes/wave',
-      working: 'emotes/determined',
-      idle: 'movement/idle-front',
+      working: 'movement/idle-back',
+      idle: 'movement/idle-back',
+      walking: 'movement/trot-back',
+      thinking: 'movement/idle-back',
+      talking: 'movement/idle-back',
     },
   },
 }

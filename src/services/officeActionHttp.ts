@@ -104,6 +104,11 @@ export class OfficeActionHttpClient {
       const actions = normalizePollResponse(data)
       for (const action of actions) {
         dispatchOfficeAction(action)
+        // 删除已执行的动作，避免重复执行
+        const actionWithId = action as OfficeActionMessage & { _id?: number }
+        if (actionWithId._id != null) {
+          fetch(`${url}?id=${actionWithId._id}`, { method: 'DELETE' }).catch(() => {})
+        }
       }
     } catch (error) {
       if (this.shouldPoll) {

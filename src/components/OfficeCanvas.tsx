@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { OfficeScene, type OfficeAgentClick } from '@/scene/OfficeScene'
 import type { Agent, AgentState } from '@/types/agent'
 
+interface OfficeCanvasProps {
+  onOpenChat: (agent: Agent) => void
+}
+
 type AgentMenuState = {
   agent: Agent
   rosterNo: number
@@ -47,7 +51,7 @@ const EMOTE_ACTIONS = [
   { label: '挥手', animation: 'emotes/wave' },
 ] as const
 
-export function OfficeCanvas() {
+export function OfficeCanvas({ onOpenChat }: OfficeCanvasProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<OfficeScene | null>(null)
   const readyRef = useRef(false)
@@ -154,6 +158,20 @@ export function OfficeCanvas() {
           {!menu.pickingTarget ? (
             <>
               <div className="agent-action-group">
+                <div className="agent-action-section-title">对话</div>
+                <button
+                  type="button"
+                  className="agent-action-btn primary"
+                  onClick={() => {
+                    onOpenChat(menu.agent)
+                    setMenu(null)
+                  }}
+                >
+                  开始对话
+                </button>
+              </div>
+
+              <div className="agent-action-group">
                 <div className="agent-action-section-title">互动</div>
                 <button
                   type="button"
@@ -164,7 +182,7 @@ export function OfficeCanvas() {
                     )
                   }
                 >
-                  互动…
+                  工位互动…
                 </button>
               </div>
 

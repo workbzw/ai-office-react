@@ -1,0 +1,18 @@
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "functions": {
+    "api/generate-script.js": { "maxDuration": 60 },
+    "api/pipeline-stage.js": { "maxDuration": 60 },
+    "api/stats.js": { "maxDuration": 10 },
+    "api/tasks.js": { "maxDuration": 10 },
+    "api/activities.js": { "maxDuration": 10 },
+    "api/topics.js": { "maxDuration": 10 },
+    "api/scripts.js": { "maxDuration": 10 },
+    "api/materials.js": { "maxDuration": 10 },
+    "api/conversations.js": { "maxDuration": 10 },
+    "api/notifications.js": { "maxDuration": 10 },
+    "api/actions.js": { "maxDuration": 10 }
+  }
+}

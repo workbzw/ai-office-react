@@ -1,60 +1,57 @@
+import { useEffect, useState } from 'react'
+import {
+  getStats,
+  listTasks,
+  listActivities,
+  createTask,
+  listNotifications,
+  type Stats,
+  type Task,
+  type Activity,
+} from '@/services/api'
+
 const NAV_ITEMS = [
-  { icon: '⌂', label: '首页', active: true, badge: undefined },
-  { icon: '▤', label: '任务中心', active: false, badge: 6 },
-  { icon: '♙', label: '智能体', active: false, badge: undefined },
-  { icon: '□', label: '文件中心', active: false, badge: undefined },
-  { icon: '☆', label: '技能中心', active: false, badge: undefined },
-  { icon: '◫', label: '浏览器助手', active: false, badge: undefined },
-  { icon: '▱', label: '对话中心', active: false, badge: 3 },
-  { icon: '□', label: '日程日历', active: false, badge: undefined },
-  { icon: '♢', label: '通知中心', active: false, badge: 5 },
+  { icon: '⌂', label: '首页' },
+  { icon: '▤', label: '选题库' },
+  { icon: '♙', label: '智能体' },
+  { icon: '□', label: '脚本库' },
+  { icon: '☆', label: '素材中心' },
+  { icon: '▱', label: '对话记录' },
+  { icon: '♢', label: '通知' },
 ] as const
 
-const STATS = [
-  { label: '今日任务', value: '6', hint: '进行中', online: false },
-  { label: '已完成', value: '13', hint: '今日完成', online: false },
-  { label: '待处理', value: '2', hint: '阻塞事项', online: false },
-  { label: 'AI 员工', value: '6/6', hint: '全部在线', online: true },
-] as const
-
-const TASKS = [
-  { title: '市场调研', owner: '王明', progress: 72, tone: 'blue', status: '进行中' },
-  { title: '文案撰写', owner: '陈书', progress: 60, tone: 'orange', status: '进行中' },
-  { title: '合规审核', owner: '赵审', progress: 30, tone: 'purple', status: '进行中' },
-  { title: '打包汇报', owner: '刘市', progress: 0, tone: 'green', status: '等待开始' },
-] as const
-
-const ACTIVITIES = [
-  { agent: '李研', text: '扫描信息源', time: '09:42' },
-  { agent: '陈书', text: '起草标书章节', time: '09:38' },
-  { agent: '王明', text: '等待主管签批', time: '09:31' },
-  { agent: '赵审', text: '检查合规条目', time: '09:24' },
-] as const
-
-const WORKSPACES = ['我的空间', '市场部空间', '产品部空间', '运营部空间'] as const
+const WORKSPACES = ['我的空间', '抖音空间', '小红书空间', '视频号空间'] as const
 
 const QUICK_TOOLS = [
-  { icon: '□', label: '文件浏览' },
-  { icon: '◎', label: '打开浏览器' },
-  { icon: '⌗', label: '截图 OCR' },
+  { icon: '□', label: '上传素材' },
+  { icon: '◎', label: '新建选题' },
+  { icon: '⌗', label: '批量生成' },
   { icon: '♩', label: '语音输入' },
 ] as const
 
 const TOOLBAR_ITEMS = [
-  { icon: 'Ⅱ', label: '全部暂停', primary: false },
-  { icon: '▶', label: '全部继续', primary: false },
-  { icon: '◷', label: '任务调度', primary: false },
-  { icon: '□', label: '安排会议', primary: false },
-  { icon: '+', label: '新建任务', primary: true },
-  { icon: '⇩', label: '导出日报', primary: false },
+  { icon: '▶', label: '全员开工', key: 'start' },
+  { icon: 'Ⅱ', label: '全部暂停', key: 'pause' },
+  { icon: '◷', label: '流水线', key: 'pipeline' },
+  { icon: '□', label: '新建脚本', key: 'new-script' },
+  { icon: '+', label: '新建任务', key: 'new-task' },
+  { icon: '⇩', label: '导出日报', key: 'export' },
 ] as const
 
-export function OfficeSidebar() {
+export type NavKey = typeof NAV_ITEMS[number]['label']
+
+interface SidebarProps {
+  active: NavKey
+  onNavigate: (key: NavKey) => void
+  unreadNotifications: number
+}
+
+export function OfficeSidebar({ active, onNavigate, unreadNotifications }: SidebarProps) {
   return (
     <aside className="office-sidebar">
       <div className="sidebar-brand">
         <span className="brand-mark">⬢</span>
-        <span>AI Office</span>
+        <span>内容创作工作台</span>
       </div>
 
       <div className="sidebar-search">
@@ -68,14 +65,15 @@ export function OfficeSidebar() {
           <button
             key={item.label}
             type="button"
-            className={`nav-item ${item.active ? 'active' : ''}`}
+            className={`nav-item ${active === item.label ? 'active' : ''}`}
+            onClick={() => onNavigate(item.label)}
           >
             <span className="nav-main">
               <span className="nav-icon">{item.icon}</span>
               <span>{item.label}</span>
             </span>
-            {item.badge ? (
-              <span className="nav-badge">{item.badge}</span>
+            {item.label === '通知' && unreadNotifications > 0 ? (
+              <span className="nav-badge">{unreadNotifications}</span>
             ) : null}
           </button>
         ))}
@@ -104,8 +102,7 @@ export function OfficeSidebar() {
         </div>
         <div className="system-status">
           <span className="agent-dot online" />
-          <span>本地运行正常</span>
-          <span>☼</span>
+          <span>系统运行正常</span>
         </div>
       </div>
     </aside>
@@ -113,9 +110,29 @@ export function OfficeSidebar() {
 }
 
 export function OfficeHeaderStats() {
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    getStats().then(setStats).catch(() => {})
+    const timer = setInterval(() => getStats().then(setStats).catch(() => {}), 30000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const cards = stats ? [
+    { label: '今日选题', value: String(stats.todayTopics), hint: '进行中', online: false },
+    { label: '已生成脚本', value: String(stats.todayScripts), hint: '今日完成', online: false },
+    { label: '待拍摄', value: String(stats.pendingTasks), hint: '阻塞事项', online: false },
+    { label: 'AI 员工', value: '4/4', hint: '全部在线', online: true },
+  ] : [
+    { label: '今日选题', value: '—', hint: '加载中', online: false },
+    { label: '已生成脚本', value: '—', hint: '加载中', online: false },
+    { label: '待拍摄', value: '—', hint: '加载中', online: false },
+    { label: 'AI 员工', value: '4/4', hint: '全部在线', online: true },
+  ]
+
   return (
     <header className="office-header-stats">
-      {STATS.map((stat) => (
+      {cards.map((stat) => (
         <section key={stat.label} className="stat-card">
           <span className="stat-label">{stat.label}</span>
           <strong className="stat-value">{stat.value}</strong>
@@ -128,32 +145,78 @@ export function OfficeHeaderStats() {
       <section className="stat-card resource-card">
         <span className="stat-label">系统资源</span>
         <div className="resource-row">
-          <span>CPU</span>
-          <div className="resource-bar"><span style={{ width: '39%' }} /></div>
-          <em>39%</em>
+          <span>选题</span>
+          <em>{stats?.totalTopics ?? 0}</em>
         </div>
         <div className="resource-row">
-          <span>内存</span>
-          <div className="resource-bar purple"><span style={{ width: '65%' }} /></div>
-          <em>65%</em>
+          <span>脚本</span>
+          <em>{stats?.totalScripts ?? 0}</em>
         </div>
         <div className="resource-row">
-          <span>网络</span>
-          <em className="network-value">15 KB/s</em>
+          <span>素材</span>
+          <em>{stats?.totalMaterials ?? 0}</em>
         </div>
       </section>
     </header>
   )
 }
 
-export function OfficeRightPanel() {
+interface RightPanelProps {
+  onToolbarAction?: (key: string) => void
+}
+
+export function OfficeRightPanel({ onToolbarAction }: RightPanelProps) {
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [activities, setActivities] = useState<Activity[]>([])
+  const [newTaskTitle, setNewTaskTitle] = useState('')
+
+  const refresh = () => {
+    listTasks().then(setTasks).catch(() => {})
+    listActivities().then(setActivities).catch(() => {})
+  }
+
+  useEffect(() => {
+    refresh()
+    const timer = setInterval(refresh, 15000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const handleCreateTask = async () => {
+    if (!newTaskTitle.trim()) return
+    try {
+      await createTask({
+        title: newTaskTitle.trim(),
+        owner: '待分配',
+        progress: 0,
+        status: '等待开始',
+        tone: 'blue',
+      })
+      setNewTaskTitle('')
+      refresh()
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
   return (
     <aside className="office-right-panel">
       <section className="panel-section">
         <h2>当前任务流</h2>
+        <div className="task-input-row">
+          <input
+            type="text"
+            placeholder="新建任务…"
+            value={newTaskTitle}
+            onChange={e => setNewTaskTitle(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && handleCreateTask()}
+          />
+          <button onClick={handleCreateTask}>+</button>
+        </div>
         <div className="task-list">
-          {TASKS.map((task) => (
-            <article key={task.title} className="task-card">
+          {tasks.length === 0 ? (
+            <p className="empty-hint">暂无任务，点击上方创建</p>
+          ) : tasks.slice(0, 8).map((task) => (
+            <article key={task.id} className="task-card">
               <div className="task-title-row">
                 <strong>{task.title}</strong>
                 <span className={task.status === '进行中' ? 'task-status active' : 'task-status'}>
@@ -162,9 +225,9 @@ export function OfficeRightPanel() {
               </div>
               <p>{task.owner}</p>
               <div className="task-progress">
-                <span className={`tone-${task.tone}`} style={{ width: `${task.progress}%` }} />
+                <span className={`tone-${task.tone || 'blue'}`} style={{ width: `${task.progress || 0}%` }} />
               </div>
-              <em className="task-percent">{task.progress}%</em>
+              <em className="task-percent">{task.progress || 0}%</em>
             </article>
           ))}
         </div>
@@ -173,8 +236,10 @@ export function OfficeRightPanel() {
       <section className="panel-section panel-grow">
         <h2>实时动态</h2>
         <ul className="activity-list">
-          {ACTIVITIES.map((activity) => (
-            <li key={`${activity.agent}-${activity.time}`}>
+          {activities.length === 0 ? (
+            <li className="empty-hint">暂无动态</li>
+          ) : activities.slice(0, 12).map((activity) => (
+            <li key={activity.id}>
               <span className="activity-dot" />
               <p>
                 <strong>{activity.agent}</strong> {activity.text}
@@ -189,7 +254,12 @@ export function OfficeRightPanel() {
         <h2>快捷工具</h2>
         <div className="quick-tools">
           {QUICK_TOOLS.map((tool) => (
-            <button key={tool.label} type="button" className="quick-tool">
+            <button
+              key={tool.label}
+              type="button"
+              className="quick-tool"
+              onClick={() => onToolbarAction?.(tool.label)}
+            >
               <span>{tool.icon}</span>
               <strong>{tool.label}</strong>
             </button>
@@ -200,15 +270,20 @@ export function OfficeRightPanel() {
   )
 }
 
-export function OfficeBottomToolbar() {
+interface BottomToolbarProps {
+  onAction?: (key: string) => void
+}
+
+export function OfficeBottomToolbar({ onAction }: BottomToolbarProps) {
   return (
     <div className="office-bottom-toolbar">
       <div className="toolbar-inner">
         {TOOLBAR_ITEMS.map((item) => (
           <button
-            key={item.label}
+            key={item.key}
             type="button"
-            className={`toolbar-btn ${item.primary ? 'primary' : ''}`}
+            className={`toolbar-btn ${item.key === 'new-task' ? 'primary' : ''}`}
+            onClick={() => onAction?.(item.key)}
           >
             <span className="toolbar-icon">{item.icon}</span>
             <span>{item.label}</span>
@@ -217,4 +292,20 @@ export function OfficeBottomToolbar() {
       </div>
     </div>
   )
+}
+
+// hook: 获取未读通知数
+export function useUnreadNotifications() {
+  const [count, setCount] = useState(0)
+  useEffect(() => {
+    const fetchCount = () => {
+      listNotifications()
+        .then(items => setCount(items.filter(n => !n.read).length))
+        .catch(() => {})
+    }
+    fetchCount()
+    const timer = setInterval(fetchCount, 30000)
+    return () => clearInterval(timer)
+  }, [])
+  return count
 }

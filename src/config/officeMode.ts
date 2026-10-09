@@ -9,7 +9,7 @@ export type OfficeDispatchMode = 'queue' | 'skip' | 'hybrid'
 const dispatchRaw = import.meta.env.VITE_OFFICE_DISPATCH_MODE
 
 export const OFFICE_HTTP_ACTIONS_URL =
-  import.meta.env.VITE_OFFICE_HTTP_ACTIONS_URL ?? 'http://localhost:8765/actions'
+  import.meta.env.VITE_OFFICE_HTTP_ACTIONS_URL ?? '/api/actions'
 
 export const OFFICE_DISPATCH_MODE: OfficeDispatchMode =
   dispatchRaw === 'skip' || dispatchRaw === 'hybrid'

@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@esotericsoftware/spine-pixi-v8": "~4.2.0",
+    "@supabase/supabase-js": "^2.117.3",
     "pixi.js": "^8.18.1",
     "react": "^19.2.6",
     "react-dom": "^19.2.6"
