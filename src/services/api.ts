@@ -139,13 +139,21 @@ export const DEFAULT_ACCOUNT: Account = {
 
 // ============ 通用 CRUD 接口 ============
 
+// materials / conversations 已合并到 /api/resources?type=xxx
+function resolveResourceUrl(resource: string, id?: number): string {
+  if (resource === 'materials' || resource === 'conversations') {
+    return id ? `${API_BASE}/resources?type=${resource}&id=${id}` : `${API_BASE}/resources?type=${resource}`
+  }
+  return id ? `${API_BASE}/${resource}?id=${id}` : `${API_BASE}/${resource}`
+}
+
 async function crudRequest<T = any>(
   resource: string,
   method: string,
   data?: any,
   id?: number
 ): Promise<T> {
-  const url = id ? `${API_BASE}/${resource}?id=${id}` : `${API_BASE}/${resource}`
+  const url = resolveResourceUrl(resource, id)
   const response = await fetch(url, {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -154,6 +162,12 @@ async function crudRequest<T = any>(
   const result = await response.json().catch(() => ({}))
   if (!response.ok) throw new Error(result.message || '请求失败')
   return result as T
+}
+
+// 带 Authorization 头的请求
+function authHeaders(): Record<string, string> {
+  const token = localStorage.getItem('dxplus_token')
+  return token ? { Authorization: `Bearer ${token}` } : {}
 }
 
 // 统计
@@ -282,3 +296,130 @@ export const createAction = (data: OfficeAction) =>
   }).then(r => r.json())
 export const completeAction = (id: number) =>
   fetch(`${API_BASE}/actions?id=${id}`, { method: 'DELETE' }).then(r => r.json())
+
+// ============ 用户认证 ============
+
+export interface User {
+  id: number
+  email: string
+  name: string
+  industry_id: number | null
+  industry: string | null
+  persona: string | null
+  content_type: string | null
+  target_audience: string | null
+  skill_instance: string | null
+  is_admin: boolean
+  created_at: string
+}
+
+export async function register(email: string, password: string, name?: string): Promise<{ token: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth?action=register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password, name }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.message || '注册失败')
+  localStorage.setItem('dxplus_token', data.token)
+  return data
+}
+
+export async function login(email: string, password: string): Promise<{ token: string; user: User }> {
+  const res = await fetch(`${API_BASE}/auth?action=login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.message || '登录失败')
+  localStorage.setItem('dxplus_token', data.token)
+  return data
+}
+
+export async function getMe(): Promise<User | null> {
+  const token = localStorage.getItem('dxplus_token')
+  if (!token) return null
+  const res = await fetch(`${API_BASE}/auth?action=me`, {
+    headers: { ...authHeaders() },
+  })
+  if (!res.ok) {
+    localStorage.removeItem('dxplus_token')
+    return null
+  }
+  const data = await res.json()
+  return data.user
+}
+
+export function logout() {
+  localStorage.removeItem('dxplus_token')
+}
+
+// ============ 行业映射 ============
+
+export interface IndustryMapping {
+  id: number
+  industry: string
+  persona: string
+  content_type: string
+  target_audience: string
+  created_at: string
+}
+
+export function listIndustries(): Promise<IndustryMapping[]> {
+  return fetch(`${API_BASE}/workbench?action=industries`).then(r => r.json())
+}
+
+export async function selectIndustry(
+  industryId: number | 'custom',
+  custom?: { industry: string; persona?: string; content_type?: string; target_audience?: string }
+): Promise<User> {
+  const body: any = { industryId }
+  if (industryId === 'custom' && custom) {
+    Object.assign(body, custom)
+  }
+  const res = await fetch(`${API_BASE}/workbench?action=select-industry`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(body),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) throw new Error(data.message || '选择行业失败')
+  return data.user
+}
+
+// ============ 每日选题灵感 ============
+
+export interface DailyIdea {
+  id: number
+  video_title: string
+  like_count: number
+  favorite_count: number
+  comment_count: number
+  tags: string[]
+  content_summary: string
+  fit_reason: string
+  adapt_angle: string
+  video_url: string
+  generated_date: string
+  created_at: string
+}
+
+export function generateDailyIdeas(): Promise<{ ideas: DailyIdea[] }> {
+  return fetch(`${API_BASE}/workbench?action=daily-ideas`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  }).then(r => {
+    if (!r.ok) throw new Error('生成选题灵感失败')
+    return r.json()
+  })
+}
+
+export function listDailyIdeas(): Promise<{ ideas: DailyIdea[] }> {
+  return fetch(`${API_BASE}/workbench?action=daily-ideas`, {
+    headers: { ...authHeaders() },
+  }).then(r => {
+    if (!r.ok) throw new Error('获取选题灵感失败')
+    return r.json()
+  })
+}

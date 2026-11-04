@@ -310,9 +310,14 @@ export function ChatPanel({ agent, onClose }: ChatPanelProps) {
           ))}
           {loading && (
             <div className="chat-message agent">
-              <div className="chat-bubble">
+              <div className="chat-bubble chat-typing-bubble">
                 <div className="chat-meta">{agent.name} AI</div>
-                <div className="chat-text">正在生成中…</div>
+                <div className="chat-typing" aria-label="正在生成中">
+                  <span className="chat-typing-dot" />
+                  <span className="chat-typing-dot" />
+                  <span className="chat-typing-dot" />
+                  <span className="chat-typing-hint">正在生成</span>
+                </div>
               </div>
             </div>
           )}
@@ -337,8 +342,13 @@ export function ChatPanel({ agent, onClose }: ChatPanelProps) {
               placeholder="输入消息…"
               rows={1}
             />
-            <button type="button" className="chat-send" onClick={handleSend} disabled={loading || !input.trim()}>
-              发送
+            <button
+              type="button"
+              className={`chat-send${loading ? ' loading' : ''}`}
+              onClick={handleSend}
+              disabled={loading || !input.trim()}
+            >
+              {loading ? '生成中' : '发送'}
             </button>
           </div>
         </div>

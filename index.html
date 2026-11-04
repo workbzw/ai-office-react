@@ -5,8 +5,115 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>内容创作工作台</title>
+    <style>
+      /* ===== Marvis 风格初始加载动画（在 React 挂载前立即可见） ===== */
+      #app-loader {
+        position: fixed;
+        inset: 0;
+        background: #ffffff;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 22px;
+        z-index: 9999;
+        font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+      #app-loader.hide {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+      .loader-brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .loader-mark {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+        background: #e35d4f;
+        color: #fff;
+        font-size: 18px;
+        font-weight: 700;
+        position: relative;
+        overflow: hidden;
+      }
+      .loader-mark::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 60%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        animation: loader-sheen 1.8s ease-in-out infinite;
+      }
+      @keyframes loader-sheen {
+        0% { left: -100%; }
+        55%, 100% { left: 130%; }
+      }
+      .loader-name {
+        font-size: 22px;
+        font-weight: 600;
+        color: #1a1a1a;
+        letter-spacing: 0.5px;
+      }
+      .loader-name .accent { color: #e35d4f; }
+      .loader-bar {
+        width: 180px;
+        height: 2px;
+        border-radius: 999px;
+        background: #eceae4;
+        overflow: hidden;
+        position: relative;
+      }
+      .loader-bar span {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 35%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #e35d4f, #ff7a63);
+        animation: loader-slide 1.3s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+      }
+      @keyframes loader-slide {
+        0% { left: -35%; }
+        100% { left: 100%; }
+      }
+      .loader-status {
+        font-size: 12px;
+        color: #8a8a8a;
+        letter-spacing: 0.3px;
+      }
+      .loader-status .dot-anim::after {
+        content: '';
+        display: inline-block;
+        animation: loader-dots 1.4s steps(4, end) infinite;
+      }
+      @keyframes loader-dots {
+        0% { content: ''; }
+        25% { content: '.'; }
+        50% { content: '..'; }
+        75%, 100% { content: '...'; }
+      }
+    </style>
   </head>
   <body>
+    <div id="app-loader">
+      <div class="loader-brand">
+        <span class="loader-mark">D</span>
+        <span class="loader-name">Dx<span class="accent">Plus</span></span>
+      </div>
+      <div class="loader-bar"><span></span></div>
+      <div class="loader-status">正在加载工作台<span class="dot-anim"></span></div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

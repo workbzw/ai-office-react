@@ -8,6 +8,7 @@ import {
   type Stats,
   type Task,
   type Activity,
+  type User,
 } from '@/services/api'
 
 const NAV_ITEMS = [
@@ -29,24 +30,22 @@ const QUICK_TOOLS = [
   { icon: '♩', label: '语音输入' },
 ] as const
 
-const TOOLBAR_ITEMS = [
-  { icon: '▶', label: '全员开工', key: 'start' },
-  { icon: 'Ⅱ', label: '全部暂停', key: 'pause' },
-  { icon: '◷', label: '流水线', key: 'pipeline' },
-  { icon: '□', label: '新建脚本', key: 'new-script' },
-  { icon: '+', label: '新建任务', key: 'new-task' },
-  { icon: '⇩', label: '导出日报', key: 'export' },
-] as const
-
 export type NavKey = typeof NAV_ITEMS[number]['label']
 
 interface SidebarProps {
   active: NavKey
   onNavigate: (key: NavKey) => void
   unreadNotifications: number
+  user?: User | null
+  onLogout?: () => void
+  onWorkbench?: () => void
 }
 
-export function OfficeSidebar({ active, onNavigate, unreadNotifications }: SidebarProps) {
+export function OfficeSidebar({ active, onNavigate, unreadNotifications, user, onLogout, onWorkbench }: SidebarProps) {
+  const userName = user?.name || 'Teejoo'
+  const avatarChar = userName.charAt(0).toUpperCase()
+  const userIndustry = user?.industry || ''
+
   return (
     <aside className="office-sidebar">
       <div className="sidebar-brand">
@@ -59,6 +58,18 @@ export function OfficeSidebar({ active, onNavigate, unreadNotifications }: Sideb
         <span>搜索功能、任务、员工…</span>
         <kbd>⌘K</kbd>
       </div>
+
+      {/* 工作台入口 */}
+      <button
+        type="button"
+        className="nav-item workbench-entry"
+        onClick={onWorkbench}
+      >
+        <span className="nav-main">
+          <span className="nav-icon">⚡</span>
+          <span>工作台</span>
+        </span>
+      </button>
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map((item) => (
@@ -94,11 +105,16 @@ export function OfficeSidebar({ active, onNavigate, unreadNotifications }: Sideb
 
       <div className="sidebar-footer">
         <div className="user-card">
-          <span className="user-avatar">T</span>
+          <span className="user-avatar">{avatarChar}</span>
           <span>
-            <strong>Teejoo</strong>
-            <em><span className="agent-dot online" />在线</em>
+            <strong>{userName}</strong>
+            <em><span className="agent-dot online" />{userIndustry || '在线'}</em>
           </span>
+          {onLogout && (
+            <button type="button" className="logout-btn" onClick={onLogout} title="退出登录">
+              退出
+            </button>
+          )}
         </div>
         <div className="system-status">
           <span className="agent-dot online" />
@@ -272,23 +288,71 @@ export function OfficeRightPanel({ onToolbarAction }: RightPanelProps) {
 
 interface BottomToolbarProps {
   onAction?: (key: string) => void
+  onSubmit?: (text: string) => void
 }
 
-export function OfficeBottomToolbar({ onAction }: BottomToolbarProps) {
+export function OfficeBottomToolbar({ onAction, onSubmit }: BottomToolbarProps) {
+  const [taskText, setTaskText] = useState('')
+  const [combo, setCombo] = useState('省心组合')
+
+  const handleSubmit = () => {
+    const text = taskText.trim()
+    if (!text) return
+    onSubmit?.(text)
+    setTaskText('')
+  }
+
   return (
     <div className="office-bottom-toolbar">
-      <div className="toolbar-inner">
-        {TOOLBAR_ITEMS.map((item) => (
-          <button
-            key={item.key}
-            type="button"
-            className={`toolbar-btn ${item.key === 'new-task' ? 'primary' : ''}`}
-            onClick={() => onAction?.(item.key)}
-          >
-            <span className="toolbar-icon">{item.icon}</span>
-            <span>{item.label}</span>
-          </button>
-        ))}
+      <div className="task-input-bar">
+        <textarea
+          className="task-input-main"
+          placeholder="请输入任务，交给我来帮你完成"
+          value={taskText}
+          onChange={(e) => setTaskText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              handleSubmit()
+            }
+          }}
+          rows={1}
+        />
+        <div className="task-input-footer">
+          <div className="task-input-left">
+            <button
+              type="button"
+              className="task-file-btn"
+              onClick={() => onAction?.('upload')}
+            >
+              <span className="task-file-icon">+</span>
+              <span>选择文件</span>
+            </button>
+          </div>
+          <div className="task-input-right">
+            <select
+              className="task-combo-select"
+              value={combo}
+              onChange={(e) => setCombo(e.target.value)}
+            >
+              <option value="省心组合">省心组合</option>
+              <option value="快速出稿">快速出稿</option>
+              <option value="深度创作">深度创作</option>
+              <option value="精准投放">精准投放</option>
+            </select>
+            <button
+              type="button"
+              className="task-send-btn"
+              onClick={handleSubmit}
+              disabled={!taskText.trim()}
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 19V5" />
+                <path d="M5 12l7-7 7 7" />
+              </svg>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
